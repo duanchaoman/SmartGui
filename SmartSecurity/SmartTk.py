@@ -465,6 +465,7 @@ def login():
             input_plcres=tk.Text(window_addrec, height=1, width=40, bd=5, pady=5, padx=5)
             input_plcres.place(x=10,y=390)
 
+            #接警
             def plcsave():
                 uip=input_ipadr.get(1.0, tk.END + "-1c")
                 url='http://'+uip+'/smartSecurityAPI/alarmMessages/alarm/addRecord'
@@ -1988,26 +1989,40 @@ def login():
                 out_plcquerymag.delete('1.0', 'end')
                 out_plcquerymag.insert('1.0', res)
 
-
-
-
             #按钮-监一栋
             btn_plcone=tk.Button(window_plcana,text='监一栋',height=1, width=10,command=lambda :plcone())
             btn_plcone.place(x=10,y=100)
-
-
-
-
-
-
-
-
 
         #按钮-警情分析
         btn_plcana=tk.Button(anfang_window,text='警情分析',command=lambda :plcana())
         btn_plcana.place(x=80,y=170)
 
+        #提示语-警员管理
+        pro_plcmag=tk.Label(anfang_window,text='警员管理')
+        pro_plcmag.place(x=10,y=210)
 
+        #功能-警员管理
+        def plcmag():
+            window_plcmag=tk.Toplevel(anfang_window)
+            window_plcmag.title('警员管理')
+            window_plcmag.geometry('1050x700')
+            window_plcmag.resizable(False,False)
+
+
+            # 文本框-输出处理结果-添加滚动条
+            yscrollbar = Scrollbar(window_plcmag)
+            yscrollbar.pack(side=RIGHT, fill=Y)
+            out_plcmag = tk.Text(window_plcmag, height=50, width=70, bd=5, pady=5, padx=5)
+            yscrollbar.config(command=out_plcmag.yview)
+            out_plcmag.config(yscrollcommand=yscrollbar.set)
+            out_plcmag.place(x=500, y=10)
+
+
+
+
+        #按钮-警员管理
+        btn_plcmag=tk.Button(anfang_window,text='警员管理',command=lambda :plcmag())
+        btn_plcmag.place(x=10,y=230)
 
 
 
