@@ -1,6 +1,5 @@
 import json
 import tkinter as tk
-from  tkinter import Entry
 from tkinter import Scrollbar,RIGHT,Y
 from tkinter import ttk
 from Crypto.PublicKey import RSA
@@ -13,6 +12,9 @@ root=tk.Tk()
 root.title('监狱-兴义')
 root.geometry('1000x800')
 root.resizable(False,False)
+
+#全局变量
+departId='526101'#警员信息
 
 #提示语-ip配置
 pro_ipset=tk.Label(root,text='输入IP地址：')
@@ -94,6 +96,7 @@ def login():
         Level=res.get('result').get('user').get('accountLevel')
         accountLevel="\n当前用户级别："+str(Level)
         person= res.get('result').get('person').get('personId')
+        user_departId=res.get('result').get('person').get('departId')
         token = res.get('result').get('token')
         userId = res.get('result').get('user').get('userId')
         guestCode = res.get('result').get('user').get('guestCode')
@@ -297,11 +300,162 @@ def login():
             else:
                 btn_month.configure(bg='red')
 
-
-
         # 按钮-本月
         btn_month=tk.Button(root,text='当月',height=1,width=20,command=lambda :month())
         btn_month.place(x=180,y=350)
+
+        # 提示语-警员管理
+        tk.Label(root,text='------警员管理').place(x=10,y=380)
+
+        # 功能-民警信息
+        def plcinfo():
+            uip = input_ipadr.get(1.0, tk.END + "-1c")
+            url = 'http://'+uip+'/smartSecurityAPI/bus/person/findAll?departId='+departId
+            headers = {'Content-Type': 'application/json', 'token': token, 'guestCode': guestCode}
+            res = requests.get(url=url, headers=headers, params=None).json()
+            out_Magtext.delete('1.0', 'end')
+            out_Magtext.insert('1.0', res)
+            if res.get('msg') == 'OK':
+                btn_plcinfo.configure(bg='green')
+            else:
+                btn_plcinfo.configure(bg='red')
+
+        # 按钮-民警信息
+        btn_plcinfo=tk.Button(root,text='民警信息',height=1,width=10,command=lambda :plcinfo())
+        btn_plcinfo.place(x=10,y=410)
+
+        # 功能-实时警力
+        def plcreal():
+            uip = input_ipadr.get(1.0, tk.END + "-1c")
+            url = 'http://'+uip+'/smartSecurityAPI/zxw/getZxwBuildFloorTree'
+            headers = {'Content-Type': 'application/json', 'token': token, 'guestCode': guestCode}
+            res = requests.get(url=url, headers=headers, params=None).json()
+            out_Magtext.delete('1.0', 'end')
+            out_Magtext.insert('1.0', res)
+            if res.get('msg') == 'OK':
+                btn_plcreal.configure(bg='green')
+            else:
+                btn_plcreal.configure(bg='red')
+
+        # 按钮-实时警力
+        btn_plcreal=tk.Button(root,text='实时警力',height=1,width=10,command=lambda :plcreal())
+        btn_plcreal.place(x=130,y=410)
+
+        # 功能-警情分析
+        def plcana():
+            uip = input_ipadr.get(1.0, tk.END + "-1c")
+            url = 'http://' + uip +'/smartSecurityAPI/bus/dept/queryDepartStatistics'
+            headers = {'Content-Type': 'application/json', 'token': token, 'guestCode': guestCode}
+            res = requests.get(url=url, headers=headers, params=None).json()
+            out_Magtext.delete('1.0', 'end')
+            out_Magtext.insert('1.0', res)
+            if res.get('msg') =='OK':
+                btn_plcana.configure(bg='green')
+            else:
+                btn_plcana.configure(bg='red')
+
+        # 按钮-警情分析
+        btn_plcana=tk.Button(root,text='警情分析',height=1,width=10,command=lambda :plcana())
+        btn_plcana.place(x=250,y=410)
+
+        # 提示语-日常巡更
+        tk.Label(root,text='------日常巡更').place(x=10,y=440)
+
+        # 功能-新增巡更路线
+        def plcparo():
+            uip = input_ipadr.get(1.0, tk.END + "-1c")
+            url = 'http://' + uip +'/smartSecurityAPI/patrol/path/save'
+            headers = {'Content-Type': 'application/json', 'token': token, 'guestCode': guestCode}
+            pathNode = "[{\"id\":\"xgpoint3748\",\"type\":0,\"currentTreeId\":\"000\",\"url\":\"\",\"positionCode\":\"5223010030090300270020000000001000000000\",\"videoArr\":[],\"position\":{\"longitude\":104.91964972549191,\"latitude\":25.136245142355815,\"altitude\":65.6849678889957}},{\"id\":\"xgpoint0468\",\"type\":0,\"currentTreeId\":\"000\",\"url\":\"\",\"positionCode\":\"5223010030090300270020000000001000000000\",\"videoArr\":[],\"position\":{\"longitude\":104.919499419485,\"latitude\":25.136890583330715,\"altitude\":65.66221604181243}},{\"id\":\"xgpoint8076\",\"type\":0,\"currentTreeId\":\"000\",\"url\":\"\",\"positionCode\":\"5223010030090300270020000000001000000000\",\"videoArr\":[],\"position\":{\"longitude\":104.92004081159351,\"latitude\":25.13702465293982,\"altitude\":65.6669518570738}}]"
+            data = json.dumps({
+                "pathName": "日常巡更路线",
+                "pathNode": pathNode
+
+            })
+            res = requests.post(url=url, headers=headers, data=data).json()
+            out_Magtext.delete('1.0', 'end')
+            out_Magtext.insert('1.0', res)
+            if res.get('msg') == 'OK':
+                btn_plcparo.configure(bg='green')
+            else:
+                btn_plcparo.configure(bg='red')
+
+        # 按钮-新增巡更路线
+        btn_plcparo=tk.Button(root,text='新增巡更路线',height=1,width=10,command= lambda :plcparo())
+        btn_plcparo.place(x=10,y=470)
+
+        # 功能 -新增巡更任务
+        def plcpata():
+            uip = input_ipadr.get(1.0, tk.END + "-1c")
+            # 获取巡更路线信息
+            getlisturl = 'http://' + uip + '/smartSecurityAPI/patrol/path/list'
+            headers = {'Content-Type': 'application/json', 'token': token, 'guestCode': guestCode}
+            res = requests.get(url=getlisturl, headers=headers, params=None).json()
+            result=res.get('result')
+            path = result[0]
+            pathId = path.get('pathId')
+            url= 'http://' + uip + '/smartSecurityAPI/patrol/task/save'
+            data=json.dumps({
+                    "pathId": pathId,
+                    "taskName": "日常巡更任务",
+                    "departId": user_departId,
+                    "taskType": "0",
+                    "taskTimes": 1,
+                    "taskTime": 5
+            })
+            patares=requests.post(url=url,headers=headers,data=data).json()
+            out_Magtext.delete('1.0', 'end')
+            out_Magtext.insert('1.0', patares)
+            if patares.get('msg') == 'OK' :
+                btn_plcpata.configure(bg='green')
+            else:
+                btn_plcpata.configure(bg='red')
+
+        # 按钮-新增巡更任务
+        btn_plcpata=tk.Button(root,text='新增巡更任务',height=1,width=10,command=lambda :plcpata())
+        btn_plcpata.place(x=130,y=470)
+
+        # 功能-执行巡更任务
+        def plcimp():
+            uip = input_ipadr.get(1.0, tk.END + "-1c")
+            headers = {'Content-Type': 'application/json', 'token': token, 'guestCode': guestCode}
+            # 获取巡更路线列表
+            getlist_url='http://' + uip +'/smartSecurityAPI/patrol/task/getTodayPatrolTaskDetails?taskType=0'
+            getlist_res=requests.get(url=getlist_url,headers=headers,params=None).json()
+            result=getlist_res.get('result')
+            result_0=result[0]
+            taskId=result_0.get('taskId')
+            #执行巡更任务
+            taskStartTime=datetime.strftime(datetime.now(),'%Y-%m-%d %H:%M:%S')
+            taskEndTime=datetime.strftime(datetime.now(),'%Y-%m-%d %H:%M:%S')
+            url='http://' + uip +'/smartSecurityAPI/patrol/rec/save'
+            data=json.dumps({
+                    "recResult": 1,
+                    "recRemark": "",
+                    "taskId": taskId,
+                    "taskStartTime": taskStartTime,
+                    "taskEndTime": taskEndTime
+            })
+            res=requests.post(url=url,headers=headers,data=data).json()
+            out_Magtext.delete('1.0', 'end')
+            out_Magtext.insert('1.0', res)
+            if res.get('msg') == 'OK':
+                btn_plcimp.configure(bg='green')
+            else:
+                btn_plcimp.configure(bg='red')
+
+        # 按钮-执行巡更任务
+        btn_plcimp=tk.Button(root,text='执行巡更任务',height=1,width=10,command=lambda :plcimp())
+        btn_plcimp.place(x=250,y=470)
+
+        # 按钮-巡更日志
+        btn_plclog=tk.Button(root,text='巡更日志',height=1,width=10)
+        btn_plclog.place(x=10,y=500)
+
+        # 按钮-统计分析
+
+
+
 
 
 #按钮-登录
