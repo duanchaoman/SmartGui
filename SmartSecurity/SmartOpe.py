@@ -450,10 +450,11 @@ def login():
 
         # 按钮-巡更日志
         btn_plclog=tk.Button(root,text='巡更日志',height=1,width=10)
-        btn_plclog.place(x=10,y=500)
+        btn_plclog.place(x=10,y=520)
 
         # 按钮-统计分析
-
+        btn_plcstaana=tk.Button(root,text='统计分析',height=1,width=10)
+        btn_plcstaana.place(x=130,y=520)
 
 
 

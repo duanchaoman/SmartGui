@@ -63,6 +63,7 @@ def getPublicKey():
     publicKey = '-----BEGIN PUBLIC KEY-----\n' + public + '\n-----END PUBLIC KEY-----'
     return publicKey
 
+#加密处理
 def encrpt(password,public_key):
     rsakey = RSA.importKey(public_key)
     cipher = Cipher_pksc1_v1_5.new(rsakey)
@@ -343,8 +344,8 @@ def login():
             btn_accplc.place(x=100,y=350)
 
         #按钮-未处置
-        btn_nodis=tk.Button(anfang_window,text='未处置',height=1, width=8,command=lambda :nodis())
-        btn_nodis.place(x=10,y=30)
+        # btn_nodis=tk.Button(anfang_window,text='未处置',height=1, width=8,command=lambda :nodis())
+        # btn_nodis.place(x=10,y=30)
 
         # 打开补录页面
         def addrec():
@@ -585,8 +586,8 @@ def login():
 
 
         #按钮-补录
-        btn_addre=tk.Button(anfang_window,text='补录',height=1, width=10,command=lambda :addrec())
-        btn_addre.place(x=90,y=30)
+        # btn_addre=tk.Button(anfang_window,text='补录',height=1, width=10,command=lambda :addrec())
+        # btn_addre.place(x=90,y=30)
 
         # 一键创建处理查询
         def credoit():
@@ -713,26 +714,9 @@ def login():
                 anfang_outmag.insert('1.0', erromag)
 
 
-
-
-
-
-
-
-
-
         # 按钮-一键创建
-        btn_credoit=tk.Button(anfang_window,text='一键创建处理警情',height=1,width=20,command=lambda :credoit())
-        btn_credoit.place(x=190,y=30)
-
-
-
-
-
-
-
-
-
+        btn_credoit=tk.Button(anfang_window,text='一键接警处理查询警情',height=1,width=20,command=lambda :credoit())
+        btn_credoit.place(x=10,y=30)
 
 
         #提示语-警情中心
@@ -1043,8 +1027,8 @@ def login():
             btn_fouradd.place(x=10,y=510)
 
         #按钮-警情查询
-        btn_plcquery=tk.Button(anfang_window,text='警情查询',command=lambda :plcquery())
-        btn_plcquery.place(x=10,y=110)
+        # btn_plcquery=tk.Button(anfang_window,text='警情查询',command=lambda :plcquery())
+        # btn_plcquery.place(x=10,y=110)
 
         #功能-警情处理
         def plchandwin():
@@ -1576,8 +1560,13 @@ def login():
             btn_fourlevedisesc.place(x=250,y=300)
 
         #按钮-警情处理
-        btn_plchand=tk.Button(anfang_window,text='警情处理',command=lambda :plchandwin())
-        btn_plchand.place(x=80,y=110)
+        # btn_plchand=tk.Button(anfang_window,text='警情处理',command=lambda :plchandwin())
+        # btn_plchand.place(x=80,y=110)
+
+
+        #按钮-
+
+
 
         # 提示语-处警历史查询
         pro_plcdishic = tk.Label(anfang_window, text='------处警历史')
