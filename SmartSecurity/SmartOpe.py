@@ -118,17 +118,29 @@ def login():
             headers = {'Content-Type': 'application/json', 'token': token, 'guestCode': guestCode}
             curr_time = datetime.now()
             alrtime = datetime.strftime(curr_time, '%Y-%m-%d %H:%M:%S')
-            twolevedata_front = {
-                "createTime": " ",
-                "handledTime": "",
-                "alarmTime": alrtime,
-                "address": "监一栋/1楼/103",
-                "alarmMemo": "非法翻越",
-                "alarmLevelCode": "02",
-                "alarmPerson": "报警人姓名",
-                "alarmDescription": "报警描述",
-                "receiverUserId": userId
-            }
+            twoleve_data=json.dumps(
+                {
+                    "createTime": "",
+                    "handledTime": "",
+                    "alarmTime": alrtime,
+                    "address": "监一栋",
+                    "alarmMemo": "区域入侵",
+                    "alarmLevelCode": "02",
+                    "alarmPerson": "报警人姓名",
+                    "alarmPersonTel": "12333333333",
+                    "alarmDescription": "描述",
+                    "receiverUserId": userId,
+                    "result": "",
+                    "positionCode": "5223010030090300080020000000001000000000",
+                    "alarmAddressFloorId": "",
+                    "alarmCoordinate": "{\"longitude\":104.91867520732873,\"latitude\":25.138250882693978,\"altitude\":65.82954917621814}",
+                    "inRoom": 2,
+                    "addressId": "522301-f05257da869443379d54b6117c7e9ca2",
+                    "alarmSourceCode": "02",
+                    "status": "0"
+                }
+            )
+
             fourlevedata_front = {
                 "createTime": " ",
                 "handledTime": "",
@@ -137,22 +149,21 @@ def login():
                 "alarmMemo": "非法翻越",
                 "alarmLevelCode": "04",
                 "alarmPerson": "报警人姓名",
+                "alarmPersonTel": "13111111111",
                 "alarmDescription": "报警描述",
                 "receiverUserId": userId
             }
             data_after = {
                 "result": "",
-                "positionCode": "5223010030090300010020010010301006500000",
-                "alarmAddressFloorId": "",
-                "alarmCoordinate": "[-2.338444465518915,-1.6307756742432518,4.991408488774528]",
+	            "positionCode": "5223010030090300010020010010301006500000",
+                "alarmAddressFloorId": "522301-6ebac410cd6145eead50f90d6cbb2bd8",
+                "alarmCoordinate": "[-2.825569540095187,-1.6307759843888676,5.376916993914214]",
                 "inRoom": 1,
                 "addressId": "522301-f9dfcc084f294fc5a959efe69465e555",
                 "alarmSourceCode": "02",
                 "status": "0"
-            }
-            twoadd_data = {**twolevedata_front, **data_after}
-            twodata = json.dumps(twoadd_data)
-            twoleveres = requests.post(url=url, headers=headers, data=twodata).json()
+                    }
+            twoleveres = requests.post(url=url, headers=headers, data=twoleve_data).json()
             fouradd_data={**fourlevedata_front, **data_after}
             fourdata=json.dumps(fouradd_data)
             fourleveres=requests.post(url=url,headers=headers,data=fourdata).json()
@@ -180,8 +191,46 @@ def login():
 
 
         # 按钮-一键创建
-        btn_credoit=tk.Button(root,text='一键接警',height=1,width=20,command=lambda :creat())
+        btn_credoit=tk.Button(root,text='一键接警',height=1,width=10,command=lambda :creat())
         btn_credoit.place(x=10,y=230)
+
+        # 功能-最新一二三级警情
+        def lastott():
+            uip = input_ipadr.get(1.0, tk.END + "-1c")
+            headers = {'Content-Type': 'application/json', 'token': token, 'guestCode': guestCode}
+            this_week_start = datetime.strftime(datetime.now() - timedelta(days=datetime.now().weekday()), '%Y-%m-%d')
+            this_week_end = datetime.strftime(datetime.now() + timedelta(days=6 - datetime.now().weekday()), '%Y-%m-%d')
+            url='http://'+uip+'/smartSecurityAPI/alarmMessages/alarm/getAlarmMessages?currentPage=1&pageSize=10&pushStatus=0,1&alarmSourceCode=&alarmLevelCode=&alarmMemo=&beginDate='+this_week_start+'+00:00:00&endDate='+this_week_end+'+23:59:59&address=&importantEquip='
+            res=requests.get(url=url,headers=headers,params=None).json()
+            out_Magtext.delete('1.0','end')
+            out_Magtext.insert('1.0',res)
+            if res.get('msg') == 'OK':
+                btn_lastott.configure(bg='green')
+            else:
+                btn_lastott.configure(bg='red')
+
+        # 按钮-最新一二三级警情
+        btn_lastott=tk.Button(root,text='最新一二三级',height=1,width=10,command=lambda :lastott())
+        btn_lastott.place(x=90,y=230)
+
+        # 功能-最新四级
+        def lastfour():
+            uip = input_ipadr.get(1.0, tk.END + "-1c")
+            headers = {'Content-Type': 'application/json', 'token': token, 'guestCode': guestCode}
+            this_week_start = datetime.strftime(datetime.now() - timedelta(days=datetime.now().weekday()), '%Y-%m-%d')
+            this_week_end = datetime.strftime(datetime.now() + timedelta(days=6 - datetime.now().weekday()), '%Y-%m-%d')
+            url='http://'+uip+'/smartSecurityAPI/alarmMessages/alarm/getFourLevelAlarmMessages?currentPage=1&pageSize=10&pushStatus=0,1&alarmSourceCode=&alarmLevelCode=&alarmMemo=&beginDate='+this_week_start+'+00:00:00&endDate='+this_week_end+'+23:59:59&address=&importantEquip='
+            res=requests.get(url=url,headers=headers,params=None).json()
+            out_Magtext.delete('1.0', 'end')
+            out_Magtext.insert('1.0', res)
+            if res.get('msg') == 'OK':
+                btn_lastfour.configure(bg='green')
+            else:
+                btn_lastfour.configure(bg='red')
+
+        # 按钮-最新四级
+        btn_lastfour=tk.Button(root,text='最新四级',height=1,width=10,command=lambda :lastfour())
+        btn_lastfour.place(x=170,y=230)
 
         #功能-一键处警
         def plcdis():
@@ -219,8 +268,9 @@ def login():
             #4级警情处置接口存在问题
 
         #按钮-一键处警
-        btn_plcdis=tk.Button(root,text='一键处警',height=1,width=20,command=lambda :plcdis())
-        btn_plcdis.place(x=180,y=230)
+        btn_plcdis=tk.Button(root,text='一键处警',height=1,width=10,command=lambda :plcdis())
+        btn_plcdis.place(x=250,y=230)
+
 
         # 提示语-处警历史
         tk.Label(root,text='------处警历史').place(x=10,y=260)
@@ -278,7 +328,10 @@ def login():
             out_Magtext.delete('1.0', 'end')
             out_Magtext.insert('1.0', res)
             if res.get('msg') == 'OK':
-                btn_week.configure(bg='green')
+                if len(res.get('result')) == 0:
+                    btn_week.configure(bg='yellow')
+                else:
+                    btn_week.configure(bg='green')
             else:
                 btn_week.configure(bg='red')
 
@@ -298,7 +351,10 @@ def login():
             out_Magtext.delete('1.0', 'end')
             out_Magtext.insert('1.0', res)
             if res.get('msg') == 'OK':
-                btn_month.configure(bg='green')
+                if len(res.get('result')) == 0:
+                    btn_month.configure(bg='yellow')
+                else:
+                    btn_month.configure(bg='green')
             else:
                 btn_month.configure(bg='red')
 
