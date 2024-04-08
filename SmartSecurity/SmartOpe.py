@@ -7,6 +7,7 @@ from Crypto.Cipher import PKCS1_v1_5 as Cipher_pksc1_v1_5
 import base64
 import requests
 from datetime import datetime, timedelta
+import random
 
 root=tk.Tk()
 root.title('监狱-兴义')
@@ -97,6 +98,7 @@ def login():
         accountLevel="\n当前用户级别："+str(Level)
         person= res.get('result').get('person').get('personId')
         user_departId=res.get('result').get('person').get('departId')
+        user_deptName = res.get('result').get('deptName')
         token = res.get('result').get('token')
         userId = res.get('result').get('user').get('userId')
         guestCode = res.get('result').get('user').get('guestCode')
@@ -448,13 +450,284 @@ def login():
         btn_plcimp=tk.Button(root,text='执行巡更任务',height=1,width=10,command=lambda :plcimp())
         btn_plcimp.place(x=250,y=470)
 
+        # 功能-巡更日志
+        def plclog():
+            uip = input_ipadr.get(1.0, tk.END + "-1c")
+            taskStartTime = datetime.strftime(datetime.now(),'%Y-%m-%d')
+            taskEndTime = datetime.strftime(datetime.now(),'%Y-%m-%d')
+            headers = {'Content-Type': 'application/json', 'token': token, 'guestCode': guestCode}
+            url='http://' + uip +'/smartSecurityAPI/patrol/rec/list?taskStartTime='+taskStartTime+'+00:00:00&taskEndTime='+taskEndTime+'+23:59:59'
+            res=requests.get(url=url,headers=headers,params=None).json()
+            out_Magtext.delete('1.0', 'end')
+            out_Magtext.insert('1.0', res)
+            if res.get('msg') == 'OK':
+                btn_plclog.configure(bg='green')
+            else:
+                btn_plclog.configure(bg='red')
+
         # 按钮-巡更日志
-        btn_plclog=tk.Button(root,text='巡更日志',height=1,width=10)
-        btn_plclog.place(x=10,y=520)
+        btn_plclog=tk.Button(root,text='巡更日志',height=1,width=10,command=lambda :plclog())
+        btn_plclog.place(x=10,y=500)
+
+        # 功能-统计分析
+        def plcstaana():
+            uip = input_ipadr.get(1.0, tk.END + "-1c")
+            headers = {'Content-Type': 'application/json', 'token': token, 'guestCode': guestCode}
+            beginDat = datetime.strftime(datetime.now(),'%Y-%m-%d')
+            endDate = datetime.strftime(datetime.now(),'%Y-%m-%d')
+            url='http://' + uip +'/smartSecurityAPI/patrol/path/pathStatistics?beginDate='+beginDat+'+00:00:00&endDate='+endDate+'+23:59:59'
+            res=requests.get(url=url,headers=headers,params=None).json()
+            out_Magtext.delete('1.0', 'end')
+            out_Magtext.insert('1.0', res)
+            if res.get('msg') == 'OK' :
+                btn_plcstaana.configure(bg='green')
+            else:
+                btn_plcstaana.configure(bg='red')
 
         # 按钮-统计分析
-        btn_plcstaana=tk.Button(root,text='统计分析',height=1,width=10)
-        btn_plcstaana.place(x=130,y=520)
+        btn_plcstaana=tk.Button(root,text='统计分析',height=1,width=10,command=lambda :plcstaana())
+        btn_plcstaana.place(x=130,y=500)
+
+        # 提示语-应急处突
+        tk.Label(root,text='------应急处突').place(x=10,y=540)
+
+        # 功能-罪犯监管
+        def crimag():
+            uip = input_ipadr.get(1.0, tk.END + "-1c")
+            headers = {'Content-Type': 'application/json', 'token': token, 'guestCode': guestCode}
+            url ='http://' + uip +'/smartSecurityAPI/criminal/findAll?roomJqname=&roomNo='
+            res=requests.get(url=url,headers=headers,params=None).json()
+            out_Magtext.delete('1.0', 'end')
+            out_Magtext.insert('1.0', res)
+            if res.get('msg') == 'OK':
+                btn_crimag.configure(bg='green')
+            else:
+                btn_crimag.configure(bg='red')
+
+        # 按钮-罪犯监管
+        btn_crimag=tk.Button(root,text='罪犯监管',height=1,width=10,command=lambda :crimag())
+        btn_crimag.place(x=10,y=570)
+
+        # 功能-应急资源
+        def emeres():
+            uip = input_ipadr.get(1.0, tk.END + "-1c")
+            headers = {'Content-Type': 'application/json', 'token': token, 'guestCode': guestCode}
+            getgroup_url='http://' + uip +'/smartSecurityAPI/emergency/group'
+            getgroup_res=requests.get(url=getgroup_url,headers=headers,params=None).json()
+            result=getgroup_res.get('result')
+            result_1=result[0]
+            emergencyGroupId=result_1.get('emergencyGroupId')
+            url ='http://'+ uip +'/smartSecurityAPI/emergency/member?emergencyGroupId='+emergencyGroupId
+            res=requests.get(url=url,headers=headers,params=None).json()
+            out_Magtext.delete('1.0', 'end')
+            out_Magtext.insert('1.0', res)
+            if res.get('msg') == 'OK':
+                btn_emeres.configure(bg='green')
+            else:
+                btn_emeres.configure(bg='red')
+
+        # 按钮-应急资源
+        btn_emeres=tk.Button(root,text='应急资源',height=1,width=10,command=lambda :emeres())
+        btn_emeres.place(x=130,y=570)
+
+        # 功能-应急物资
+        def ememat():
+            uip = input_ipadr.get(1.0, tk.END + "-1c")
+            headers = {'Content-Type': 'application/json', 'token': token, 'guestCode': guestCode}
+            url ='http://' + uip +'/smartSecurityAPI/emergency/store/list?storeStrutsCode=&keyWord='
+            res=requests.get(url=url,headers=headers,params=None).json()
+            out_Magtext.delete('1.0', 'end')
+            out_Magtext.insert('1.0', res)
+            if res.get('msg') == 'OK':
+                btn_ememat.configure(bg='green')
+            else:
+                btn_ememat.configure(bg='red')
+
+        #按钮-应急物资
+        btn_ememat=tk.Button(root,text='应急物资',height=1,width=10,command=lambda :ememat())
+        btn_ememat.place(x=250,y=570)
+
+        # 提示语-应急演练
+        tk.Label(root,text='------应急演练').place(x=10,y=600)
+
+        # 功能-新增应急预案
+        def emeplan():
+            uip = input_ipadr.get(1.0, tk.END + "-1c")
+            headers = {'Content-Type': 'application/json', 'token': token, 'guestCode': guestCode}
+            url ='http://' + uip +'/smartSecurityAPI/preplan/save'
+            numb=str(random.randint(1,1000))
+            data=json.dumps(
+                {
+                    "departId":user_departId,
+                    "deptName": user_deptName,
+                    "preplanName": "应急预案"+numb,
+                    "preplanNo": "0000001",
+                    "eventId": "510107-e5bec9e25883431f9c869dc63596fc1d",
+                    "preplanLevel": "1",
+                    "nodeEntityList": [{
+                        "nodeName": "声音报警",
+                        "nodeText": "01",
+                        "nodeDescr": "123",
+                        "nodeId": "5942_0"
+                    }],
+                    "preplanFile": "[]"
+                }
+            )
+            res=requests.post(url=url,headers=headers,data=data).json()#新增应急预案
+            sle_url='http://' + uip +'/smartSecurityAPI/preplan?currentPage=1&pageSize=10&keyWord=%E5%BA%94%E6%80%A5%E9%A2%84%E6%A1%88'+numb
+            sle_res=requests.get(url=sle_url,headers=headers,params=None).json()
+            sle_result=sle_res.get('result').get('records')
+            sle_result_1 = sle_result[0]
+            preplanId = sle_result_1.get('preplanId')
+            app_url ='http://'+ uip +'/smartSecurityAPI/preplan/approval'
+            app_data =json.dumps(
+                {
+                    "preplanId":preplanId,
+                    "describle":"null",
+                    "status": "102"
+                }
+            )
+            requests.post(url=app_url,headers=headers,data=app_data).json()#审批
+            out_Magtext.delete('1.0', 'end')
+            out_Magtext.insert('1.0', res)
+            if res.get('msg') == 'OK':
+                btn_emeplan.configure(bg='green')
+            else:
+                btn_emeplan.configure(bg='red')
+
+        # 按钮-新增应急预案
+        btn_emeplan=tk.Button(root,text='新增应急预案',height=1,width=10,command=lambda :emeplan())
+        btn_emeplan.place(x=10,y=630)
+
+        # 功能-新增演练计划
+        def emplan():
+            uip = input_ipadr.get(1.0, tk.END + "-1c")
+            headers = {'Content-Type': 'application/json', 'token': token, 'guestCode': guestCode}
+            currtinme=datetime.strftime(datetime.now(),'%Y-%m-%d %H:%M:%S')
+            sel_url = 'http://' + uip +'/smartSecurityAPI/preplan?departId=526132&pageSize=1000'
+            sel_res =requests.get(url=sel_url,headers=headers,params=None).json()
+            records =sel_res.get('result').get('records')
+            records_1 = records[0]
+            preplanId = records_1.get('preplanId')
+            url = 'http://' + uip +'/smartSecurityAPI/rehearsal/save'
+            data=json.dumps(
+                {
+                    "rehearsalName": "演练计划",
+                    "rehearsalPlantime": currtinme,
+                    "preplanId":preplanId
+                }
+            )
+
+            res = requests.post(url=url,headers=headers,data=data).json()
+            out_Magtext.delete('1.0', 'end')
+            out_Magtext.insert('1.0', res)
+            if res.get('msg') == 'OK':
+                btn_emplan.configure(bg='green')
+            else:
+                btn_emplan.configure(bg='red')
+
+        # 按钮-新增演练计划
+        btn_emplan=tk.Button(root,text='新增演练计划',height=1,width=10,command=lambda :emplan())
+        btn_emplan.place(x=130,y=630)
+
+        # 功能-新增方案
+        def proadd():
+            uip = input_ipadr.get(1.0, tk.END + "-1c")
+            headers = {'Content-Type': 'application/json', 'token': token, 'guestCode': guestCode}
+            # 获取rehearsalId
+            rehearsal_url='http://' + uip +'/smartSecurityAPI/rehearsal/queryPage?pageSize=1000'
+            rehearsal_res=requests.get(url=rehearsal_url,headers=headers,params=None).json()
+            rehearsal=rehearsal_res.get('result').get('records')
+            rehearsal_1=rehearsal[0]
+            rehearsalId=rehearsal_1.get('rehearsalId')
+            # 获取schemePlaceType,schemePlaceId,schemeGroup
+            scheme_url='http://'+ uip +'/smartSecurityAPI/sheme/queryPage?schemeName=&pageSize=1000'
+            scheme_res=requests.get(url=scheme_url,headers=headers,params=None).json()
+            scheme =scheme_res.get('result').get('records')
+            scheme_1=scheme[0]
+            schemePlaceType=scheme_1.get('schemePlaceType')
+            schemePlaceId=scheme_1.get('schemePlaceId')
+            schemeGroup=scheme_1.get('schemeGroup')
+            # 新增方案
+            url='http://' + uip + '/smartSecurityAPI/sheme/save'
+            data=json.dumps(
+                {
+                    "schemeName": "方案名称",
+                    "rehearsalId":rehearsalId,
+                    "schemePurpose": "演练目的",
+                    "schemePlace": "监一栋",
+                    "schemePlaceType":schemePlaceType,
+                    "schemePlaceId":schemePlaceId,
+                    "schemeMan": "[\"f9e31355c63947339940b59b178f9a84\",\"27788f69c9974dda81bb31c80c00cf62\",\"ec306071c2614a36855b23b26549a513\"]",
+                    "schemeGroup":schemeGroup,
+                    "schemeLabour": "职责分工",
+                    "schemeStand": "演练前准备",
+                    "schemeDemands": "具体要求"
+                }
+            )
+            res=requests.post(url=url,headers=headers,data=data).json()
+            out_Magtext.delete('1.0', 'end')
+            out_Magtext.insert('1.0', res)
+            if res.get('msg') == 'OK':
+                btn_proadd.configure(bg='green')
+            else:
+                btn_proadd.configure(bg='red')
+
+        # 按钮-新增方案
+        btn_proadd=tk.Button(root,text='新增演习方案',height=1,width=10,command=lambda :proadd())
+        btn_proadd.place(x=250,y=630)
+
+        # 功能-执行演练
+        def impdri():
+            uip = input_ipadr.get(1.0, tk.END + "-1c")
+            headers = {'Content-Type': 'application/json', 'token': token, 'guestCode': guestCode}
+            # 获取所有方案信息
+            sheme_url='http://' + uip +'/smartSecurityAPI/sheme/queryPage?schemeName=&pageSize=1000'
+            sheme_res=requests.get(url=sheme_url,headers=headers,params=None).json()
+            records=sheme_res.get('result').get('records')
+            records_1=records[0]
+            schemeId=records_1.get('schemeId')
+            # 执行演练
+            endtime=datetime.strftime(datetime.now(),'%Y-%m-%d %H:%M:%S')
+            url='http://' + uip +'/smartSecurityAPI/shemeRec/save'
+            data=json.dumps(
+                {
+                    "endTime": endtime,
+                    "schemeId": schemeId,
+                    "schemeMemo": "演练完毕",
+                    "startTime": endtime
+                }
+            )
+            res=requests.post(url=url,headers=headers,data=data).json()
+            out_Magtext.delete('1.0', 'end')
+            out_Magtext.insert('1.0', res)
+            if res.get('msg') == 'OK':
+                btn_impdri.configure(bg='green')
+            else:
+                btn_impdri.configure(bg='red')
+
+        # 按钮-执行演练
+        btn_impdri=tk.Button(root,text='执行演练',height=1,width=10,command=lambda :impdri())
+        btn_impdri.place(x=10,y=660)
+
+        # 功能-演练记录
+        def drirec():
+            uip = input_ipadr.get(1.0, tk.END + "-1c")
+            headers = {'Content-Type': 'application/json', 'token': token, 'guestCode': guestCode}
+            url='http://' + uip +'/smartSecurityAPI/shemeRec/queryPage?pageSize=1000'
+            res=requests.get(url=url,headers=headers,params=None).json()
+            out_Magtext.delete('1.0', 'end')
+            out_Magtext.insert('1.0', res)
+            if res.get('msg') == 'OK':
+                btn_drirec.configure(bg='green')
+            else:
+                btn_drirec.configure(bg='red')
+
+        # 按钮-演练记录
+        btn_drirec=tk.Button(root,text='演练记录',height=1,width=10,command=lambda :drirec())
+        btn_drirec.place(x=130,y=660)
+
+
 
 
 
