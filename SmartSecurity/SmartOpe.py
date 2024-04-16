@@ -25,7 +25,6 @@ pro_ipset.place(x=10,y=15)
 input_ipadr=tk.Text(root,height=1, width=20, bd=5, pady=5, padx=5)
 input_ipadr.place(x=110,y=10)
 
-
 #提示语-输入警员账号
 pro_Pollab=tk.Label(root,text='输入警员账号：')
 pro_Pollab.place(x=10,y=55)
@@ -72,6 +71,7 @@ def getPublicKey():
     publicKey = '-----BEGIN PUBLIC KEY-----\n' + public + '\n-----END PUBLIC KEY-----'
     return publicKey
 
+# 加密处理
 def encrpt(password,public_key):
     rsakey = RSA.importKey(public_key)
     cipher = Cipher_pksc1_v1_5.new(rsakey)
@@ -783,10 +783,61 @@ def login():
         btn_drirec=tk.Button(root,text='演练记录',height=1,width=10,command=lambda :drirec())
         btn_drirec.place(x=130,y=660)
 
+        # 功能-一键验证所有功能
+        def allfunction():
+            for ram in range(0,24):
+                if ram == 0:
+                    creat()
+                elif ram == 1:
+                    lastott()
+                elif ram == 2:
+                    lastfour()
+                elif ram == 3:
+                    plcdis()
+                elif ram == 4:
+                    ott()
+                elif ram == 5:
+                    four()
+                elif ram == 6:
+                    week()
+                elif ram == 7:
+                    month()
+                elif ram == 8:
+                    plcinfo()
+                elif ram == 9:
+                    plcreal()
+                elif ram == 10:
+                    plcana()
+                elif ram == 11:
+                    plcparo()
+                elif ram == 12:
+                    plcpata()
+                elif ram == 13:
+                    plcimp()
+                elif ram == 14:
+                    plclog()
+                elif ram == 15:
+                    plcstaana()
+                elif ram == 16:
+                    crimag()
+                elif ram == 17:
+                    emeres()
+                elif ram == 18:
+                    ememat()
+                elif ram == 19:
+                    emeplan()
+                elif ram == 20:
+                    emplan()
+                elif ram == 21:
+                    proadd()
+                elif ram == 22:
+                    impdri()
+                elif ram == 23:
+                    drirec()
 
-
-
-
+        # 按钮-一键执行所有功能
+        btn_allfunction = tk.Button(root, text='一键执行', height=1, width=10, command=lambda: allfunction())
+        btn_allfunction.place(x=250, y=150)
 
 #按钮-登录
 Logbtn=tk.Button(root,text='登录',height=1, width=8,command=lambda :login())
