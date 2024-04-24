@@ -8,6 +8,9 @@ import base64
 import requests
 from datetime import datetime, timedelta
 import random
+import codecs
+
+
 
 root=tk.Tk()
 root.title('监狱-兴义')
@@ -16,6 +19,7 @@ root.resizable(False,False)
 
 #全局变量
 departId='526101'#警员信息
+output_file =codecs.open('dislog.txt','w',encoding='utf-8')
 
 #提示语-ip配置
 pro_ipset=tk.Label(root,text='输入IP地址：')
@@ -92,21 +96,27 @@ def login():
             "password": set_pwd
         })
         res=requests.post(url=url,headers=headers,data=payload).json()
-        userName=res.get('result').get('user').get('userName')
-        login_name="\n当前登录用户："+userName
-        Level=res.get('result').get('user').get('accountLevel')
-        accountLevel="\n当前用户级别："+str(Level)
-        person= res.get('result').get('person').get('personId')
-        user_departId=res.get('result').get('person').get('departId')
-        user_deptName = res.get('result').get('deptName')
-        token = res.get('result').get('token')
-        userId = res.get('result').get('user').get('userId')
-        guestCode = res.get('result').get('user').get('guestCode')
-        user_guestCode = "\nGuestCode:"+str(guestCode)
-        out_Magtext.delete('1.0','end')
-        out_Magtext.insert('end',login_name)
-        out_Magtext.insert('end',accountLevel)
-        out_Magtext.insert('end',user_guestCode)
+        if res.get('msg') == 'OK':
+            userName=res.get('result').get('user').get('userName')
+            login_name="\n当前登录用户："+userName
+            Level=res.get('result').get('user').get('accountLevel')
+            accountLevel="\n当前用户级别："+str(Level)
+            person= res.get('result').get('person').get('personId')
+            user_departId=res.get('result').get('person').get('departId')
+            user_deptName = res.get('result').get('deptName')
+            token = res.get('result').get('token')
+            userId = res.get('result').get('user').get('userId')
+            guestCode = res.get('result').get('user').get('guestCode')
+            user_guestCode = "\nGuestCode:"+str(guestCode)
+            out_Magtext.delete('1.0','end')
+            out_Magtext.insert('end',login_name)
+            out_Magtext.insert('end',accountLevel)
+            out_Magtext.insert('end',user_guestCode)
+            output_file.write('登录用户信息；'+json.dumps(res)+'\n')
+        else:
+            out_Magtext.delete('1.0', 'end')
+            out_Magtext.insert('end', res)
+            output_file.write('登录失败，检查用户信息：'+json.dumps(res)+'\n')
 
         # 提示语-警情中心
         tk.Label(root,text='------警情中心').place(x=10,y=200)
@@ -176,19 +186,21 @@ def login():
                 out_Magtext.insert('end', twores+'\n')
                 out_Magtext.insert('end',foures+'\n')
                 btn_credoit.configure(bg='green')
-
+                output_file.write('二级警情添加结果：' + json.dumps(twoleveres) + '\n')
+                output_file.write('四级警情添加结果：' + json.dumps(fourleveres) + '\n')
             elif tworesmsg.get('msg') != 'OK':
                 erromag = '二级警情创建失败，检查'
                 btn_credoit.configure(bg='red')
                 out_Magtext.delete('1.0', 'end')
                 out_Magtext.insert('1.0', erromag)
+                output_file.write('二级警情添加失败：'+json.dumps(twoleveres)+'\n')
 
             elif fouresmsg.get('msg') != 'OK':
                 erromag = '四级警情创建失败，检查'
                 btn_credoit.configure(bg='red')
                 out_Magtext.delete('1.0', 'end')
                 out_Magtext.insert('1.0', erromag)
-
+                output_file.write('四级警情添加失败：'+json.dumps(fourleveres)+'\n')
 
         # 按钮-一键创建
         btn_credoit=tk.Button(root,text='一键接警',height=1,width=10,command=lambda :creat())
@@ -206,8 +218,10 @@ def login():
             out_Magtext.insert('1.0',res)
             if res.get('msg') == 'OK':
                 btn_lastott.configure(bg='green')
+                output_file.write('警情添加结果：' + json.dumps(res) + '\n')
             else:
                 btn_lastott.configure(bg='red')
+                output_file.write('警情添加失败'+json.dumps(res)+'\n')
 
         # 按钮-最新一二三级警情
         btn_lastott=tk.Button(root,text='最新一二三级',height=1,width=10,command=lambda :lastott())
@@ -225,8 +239,10 @@ def login():
             out_Magtext.insert('1.0', res)
             if res.get('msg') == 'OK':
                 btn_lastfour.configure(bg='green')
+                output_file.write('四级警情查询结果：' + json.dumps(res) + '\n')
             else:
                 btn_lastfour.configure(bg='red')
+                output_file.write('四级警情查询失败：'+json.dumps(res)+'\n')
 
         # 按钮-最新四级
         btn_lastfour=tk.Button(root,text='最新四级',height=1,width=10,command=lambda :lastfour())
@@ -236,36 +252,68 @@ def login():
         def plcdis():
             # 二级警情
             uip = input_ipadr.get(1.0, tk.END + "-1c")
-            query_url = 'http://' + uip + '/smartSecurityAPI/alarmMessages/alarm/getAlarmMessages?currentPage=1&pageSize=10&pushStatus=0,1&alarmSourceCode=&alarmLevelCode=&alarmMemo=&beginDate=2024-03-12+00:00:00&endDate=2024-03-19+23:59:59&address=&importantEquip='
+            this_startime = datetime.strftime(datetime.now(),'%Y-%m-%d')
+            this_endtime = datetime.strftime(datetime.now(),'%Y-%m-%d')
+            query_url = 'http://' + uip + '/smartSecurityAPI/alarmMessages/alarm/getAlarmMessages?currentPage=1&pageSize=10&pushStatus=0,1&alarmSourceCode=&alarmLevelCode=&alarmMemo=&beginDate='+this_startime+'+00:00:00&endDate='+this_endtime+'+23:59:59&address=&importantEquip='
             headers = {'Content-Type': 'application/json', 'token': token, 'guestCode': guestCode}
             query_res = requests.get(url=query_url, headers=headers, params=None).json()
-            alarm = query_res.get('result').get('records')
-            alarmI = alarm[0]
-            alarmId = str(alarmI.get('alarmId'))
-            twodo_url = 'http://' + uip + '/smartSecurityAPI/alarmHandler/alarmHandled'
-            twoleve_data = json.dumps({
-                "alarmHandlingCode": "2",
-                "handleResult": "处置",
-                "action": 0,
-                "alarmId": alarmId
-            })
-            twolevegnore_res = requests.post(url=twodo_url, headers=headers, data=twoleve_data).json()
-            if twolevegnore_res.get('msg') == 'OK':
-                twodo_mag = '二级警情处置结果：'
-                mag = '处理成功：'
-                twodo_result = 'msg：' + twolevegnore_res.get('msg') + '   result：' + twolevegnore_res.get('result')
-                out_Magtext.delete('1.0','end')
-                out_Magtext.insert('end', twodo_mag + '\n')
-                out_Magtext.insert('end', mag)
-                out_Magtext.insert('end', twodo_result + '\n')
-                btn_plcdis.configure(bg='green')
+            get_toal = query_res.get('result').get('total')
+            four_url ='http://'+uip+'/smartSecurityAPI/alarmMessages/alarm/getFourLevelAlarmMessages?currentPage=1&pageSize=10&pushStatus=0,1&alarmSourceCode=&alarmLevelCode=&alarmMemo=&beginDate='+this_startime+'+00:00:00&endDate='+this_endtime+'+23:59:59&address=&importantEquip='
+            four_res = requests.get(url=four_url,headers=headers,params=None).json()
+            get_fourtoal = four_res.get('result').get('total')
+            if get_toal and get_fourtoal > 0:
+                alarm = query_res.get('result').get('records')
+                alarmI = alarm[0]
+                alarmId = str(alarmI.get('alarmId'))
+                twodo_url = 'http://' + uip + '/smartSecurityAPI/alarmHandler/alarmHandled'
+                twoleve_data = json.dumps({
+                    "alarmHandlingCode": "2",
+                    "handleResult": "处置",
+                    "action": 0,
+                    "alarmId": alarmId
+                })
+                twolevegnore_res = requests.post(url=twodo_url, headers=headers, data=twoleve_data).json()
+                # 四级警情处置
+                four_alarm =four_res.get('result').get('records')
+                four_alarmI =four_alarm[0]
+                four_alarmId =str(four_alarmI.get('alarmId'))
+                fourleve_url = 'http://'+uip+'/smartSecurityAPI/alarmHandler/alarmHandled'
+                fourleve_data =json.dumps(
+                    {
+                        "alarmHandlingCode": "0",
+                        "handleResult": "123",
+                        "action": 1,
+                        "alarmId": four_alarmId
+                    }
+                )
+                fourleve_res =requests.post(url=fourleve_url,headers=headers,data=fourleve_data).json()
 
-            elif twolevegnore_res.get('msg') != 'OK':
-                erromag = '二级警情创建失败，检查'
+                if twolevegnore_res.get('msg') and fourleve_res.get('msg') == 'OK':
+                    twodo_mag = '二级警情处置结果：'
+                    fourdo_mag = '四级警情处置结果：'
+                    out_Magtext.delete('1.0','end')
+                    out_Magtext.insert('end', twodo_mag + '\n'+json.dumps(twolevegnore_res)+'\n')
+                    out_Magtext.insert('end',fourdo_mag + '\n'+json.dumps(fourleve_res)+'\n')
+                    btn_plcdis.configure(bg='green')
+                    output_file.write('二级警情处理成功：' + json.dumps(twolevegnore_res) + '\n')
+                    output_file.write('四级警情处置成功：'+json.dumps(fourleve_res)+'\n')
+
+                elif twolevegnore_res.get('msg') or fourleve_res.get('msg') != 'OK':
+                    two_erromag = '二级警情处置失败：'
+                    four_erromag = '四级警情处置失败：'
+                    btn_plcdis.configure(bg='red')
+                    out_Magtext.delete('1.0', 'end')
+                    out_Magtext.insert('1.0',json.dumps(two_erromag+twolevegnore_res)+'\n')
+                    out_Magtext.insert('1.0',json.dumps(four_erromag+fourleve_res)+'\n')
+                    output_file.write('二级警情处理失败：'+json.dumps(twolevegnore_res)+'\n')
+                    output_file.write('四级警情处置失败：'+json.dumps(fourleve_res)+'\n')
+
+            else:
+                erromag = '未查询到警情信息，检查服务器配置'
                 btn_plcdis.configure(bg='red')
-                out_Magtext.delete('1.0', 'end')
-                out_Magtext.insert('1.0', erromag)
-            #4级警情处置接口存在问题
+                out_Magtext.delete('1.0','end')
+                out_Magtext.insert('1.0',erromag)
+                output_file.write(erromag)
 
         #按钮-一键处警
         btn_plcdis=tk.Button(root,text='一键处警',height=1,width=10,command=lambda :plcdis())
@@ -287,9 +335,10 @@ def login():
             out_Magtext.insert('end', ott_res)
             if ott_res.get('msg') == 'OK':
                 btn_ott.configure(bg='green')
+                output_file.write('一二三级警情查询结果：' + json.dumps(ott_res) + '\n')
             else:
                 btn_ott.configure(bg='red')
-
+                output_file.write('未查询到一二三级警情数据'+json.dumps(ott_res)+'\n')
         #按钮-一二三级
         btn_ott=tk.Button(root,text='一二三级',height=1,width=20,command=lambda :ott())
         btn_ott.place(x=10,y=290)
@@ -306,8 +355,10 @@ def login():
             out_Magtext.insert('1.0', res)
             if res.get('msg') == 'OK':
                 btn_four.configure(bg='green')
+                output_file.write('查询四级警情信息：'+json.dumps(res)+'\n')
             else:
                 btn_four.configure(bg='red')
+                output_file.write('未查询到四级警情：'+json.dumps(res)+'\n')
 
         # 按钮-四级
         btn_four=tk.Button(root,text='四级',height=1,width=20,command=lambda :four())
@@ -330,11 +381,13 @@ def login():
             if res.get('msg') == 'OK':
                 if len(res.get('result')) == 0:
                     btn_week.configure(bg='yellow')
+                    output_file.write('本周无数据：'+json.dumps(res)+'\n')
                 else:
                     btn_week.configure(bg='green')
+                    output_file.write('本周警情分析数据：'+json.dumps(res)+'\n')
             else:
                 btn_week.configure(bg='red')
-
+                output_file.write('本周处警信息查询失败，检查配置信息'+json.dumps(res)+'\n')
         # 按钮-本周
         btn_week=tk.Button(root,text='本周',height=1,width=20,command=lambda :week())
         btn_week.place(x=10,y=350)
@@ -696,12 +749,12 @@ def login():
             rehearsal=rehearsal_res.get('result').get('records')
             rehearsal_1=rehearsal[0]
             rehearsalId=rehearsal_1.get('rehearsalId')
-            # 获取schemePlaceType,schemePlaceId,schemeGroup
+            # 获取schemePlaceId,schemeGroup
             scheme_url='http://'+ uip +'/smartSecurityAPI/sheme/queryPage?schemeName=&pageSize=1000'
             scheme_res=requests.get(url=scheme_url,headers=headers,params=None).json()
             scheme =scheme_res.get('result').get('records')
             scheme_1=scheme[0]
-            schemePlaceType=scheme_1.get('schemePlaceType')
+            schemePlaceType='building'
             schemePlaceId=scheme_1.get('schemePlaceId')
             schemeGroup=scheme_1.get('schemeGroup')
             # 新增方案
@@ -783,7 +836,7 @@ def login():
         btn_drirec=tk.Button(root,text='演练记录',height=1,width=10,command=lambda :drirec())
         btn_drirec.place(x=130,y=660)
 
-        # 功能-一键验证所有功能
+        # 功能-一键执行所有功能
         def allfunction():
             for ram in range(0,24):
                 if ram == 0:
