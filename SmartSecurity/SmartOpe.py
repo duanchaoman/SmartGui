@@ -9,8 +9,9 @@ import requests
 from datetime import datetime, timedelta
 import random
 import codecs
-
-
+from tkinter import filedialog
+import os
+from tkinter.filedialog import askopenfilename
 
 root=tk.Tk()
 root.title('监狱-兴义')
@@ -107,6 +108,7 @@ def login():
             token = res.get('result').get('token')
             userId = res.get('result').get('user').get('userId')
             guestCode = res.get('result').get('user').get('guestCode')
+            roleId = res.get('result').get('user').get('roleId')
             user_guestCode = "\nGuestCode:"+str(guestCode)
             out_Magtext.delete('1.0','end')
             out_Magtext.insert('end',login_name)
@@ -836,9 +838,90 @@ def login():
         btn_drirec=tk.Button(root,text='演练记录',height=1,width=10,command=lambda :drirec())
         btn_drirec.place(x=130,y=660)
 
+        #提示语 -全监总览
+        tk.Label(root,text='全监总览').place(x=10,y=690)
+
+        #功能 -当日值班
+        def todayduty():
+            beginDate = datetime.strftime(datetime.now(),'%Y-%m-%d')
+            uip = input_ipadr.get(1.0, tk.END + "-1c")
+            url = 'http://' + uip +'/smartSecurityAPI/xingyiduty/getDutyOnDay?beginDate='+beginDate
+            headers = {'Content-Type': 'application/json', 'token': token, 'guestCode': guestCode}
+            res = requests.get(url=url,headers=headers,params=None).json()
+            if res.get('msg') == 'OK':
+                btn_todayduty.configure(bg='green')
+                out_Magtext.delete('1.0','end')
+                out_Magtext.insert('1.0',res)
+            else:
+                msg='接口错误，请检查'
+                btn_todayduty.configure(bg='red')
+                out_Magtext.delete('1.0','end')
+                out_Magtext.insert('1.0',msg+res)
+
+        #按钮 -当日值班
+        btn_todayduty=tk.Button(root,text='当日值班',height=1,width=10,command=lambda :todayduty())
+        btn_todayduty.place(x=10,y=710)
+
+        #功能 - 全监总览
+        def allinfo():
+            this_day = datetime.strftime(datetime.now(), '%Y-%m-%d')
+            uip = input_ipadr.get(1.0, tk.END + "-1c")
+            url = 'http://' + uip +'/smartSecurityAPI/dutyOverview/searchData?day='+this_day
+            headers = {'Content-Type': 'application/json', 'token': token, 'guestCode': guestCode}
+            res =requests.get(url=url,headers=headers,params=None).json()
+            if res.get('msg') == 'OK':
+                btn_allinfo.configure(bg='green')
+                out_Magtext.delete('1.0','end')
+                out_Magtext.insert('1.0',res)
+            else:
+                msg = '接口错误，请检查：'
+                btn_allinfo.configure(bg='red')
+                out_Magtext.delete('1.0','end')
+                out_Magtext.insert('1.0',msg+res)
+
+        #按钮 - 全监总览
+        btn_allinfo=tk.Button(root,text='全监总览',height=1,width=10,command=lambda :allinfo())
+        btn_allinfo.place(x=130,y=710)
+
+        #提示语 -值班排班
+        tk.Label(root,text='值班排班').place(x=10,y=740)
+
+        #功能-上传和文件选择
+        def load():
+            uip = input_ipadr.get(1.0, tk.END + "-1c")
+            url = 'http://'+uip+'/smartSecurityAPI/xingyiduty/import'
+            selectFile = tk.filedialog.askopenfilename()
+            entry1.insert(0,selectFile)
+            files = {"file": (selectFile, open(selectFile, "rb"),
+                              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")}  # 文件上传需要填写的文件参数
+
+            data = {}
+            heards = {'token': token, 'guestCode': guestCode}
+            res = requests.post(url=url, files=files, data=data, headers=heards).json()
+            if res.get('msg') == 'OK':
+                btn_load.configure(bg='green')
+                out_Magtext.delete('1.0','end')
+                out_Magtext.insert('1.0',res)
+            else:
+                msg = '值班表上传失败，检查配置'
+                btn_load.configure(bg='red')
+                out_Magtext.delete('1.0','end')
+                out_Magtext.insert('1.0',msg+res)
+
+        #按钮-上传和文件选择
+        btn_load=tk.Button(root,text='上传值班表',height=1,width=10,command=lambda :load())
+        btn_load.place(x=10,y=760)
+        entry1=tk.Entry(root,width=20)
+        entry1.place(x=100,y=765)
+
+
+
+
+
+
         # 功能-一键执行所有功能
         def allfunction():
-            for ram in range(0,24):
+            for ram in range(0,27):
                 if ram == 0:
                     creat()
                 elif ram == 1:
@@ -887,6 +970,12 @@ def login():
                     impdri()
                 elif ram == 23:
                     drirec()
+                elif ram == 24:
+                    todayduty()
+                elif ram == 25:
+                    allinfo()
+                elif ram == 26:
+                    load()
 
         # 按钮-一键执行所有功能
         btn_allfunction = tk.Button(root, text='一键执行', height=1, width=10, command=lambda: allfunction())
