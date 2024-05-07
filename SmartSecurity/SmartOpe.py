@@ -15,7 +15,7 @@ from tkinter.filedialog import askopenfilename
 
 root=tk.Tk()
 root.title('监狱-兴义')
-root.geometry('1000x800')
+root.geometry('1100x800')
 root.resizable(False,False)
 
 #全局变量
@@ -52,7 +52,7 @@ yscrollbar.pack(side=RIGHT, fill=Y)
 out_Magtext=tk.Text(root,height=58, width=78, bd=5, pady=5, padx=5)
 yscrollbar.config(command=out_Magtext.yview)
 out_Magtext.config(yscrollcommand=yscrollbar.set)
-out_Magtext.place(x=400, y=15)
+out_Magtext.place(x=500, y=15)
 
 #单选按钮-接受收集器-设置默认选中
 radio_var=tk.StringVar()
@@ -321,6 +321,20 @@ def login():
         btn_plcdis=tk.Button(root,text='一键处警',height=1,width=10,command=lambda :plcdis())
         btn_plcdis.place(x=250,y=230)
 
+        #功能-设备报警
+        def plcdriver():
+            url = 'http://192.168.1.251:1777/eventRcv'
+            headers = {}
+
+
+        #按钮 - 设备报警
+        btn_plcdriver=tk.Button(root,text='设备报警',height=1,width=10)
+        btn_plcdriver.place(x=330,y=230)
+
+
+
+
+
 
         # 提示语-处警历史
         tk.Label(root,text='------处警历史').place(x=10,y=260)
@@ -560,6 +574,77 @@ def login():
         # 按钮-执行巡更任务
         btn_plcimp=tk.Button(root,text='执行巡更任务',height=1,width=10,command=lambda :plcimp())
         btn_plcimp.place(x=250,y=470)
+
+        # 功能-新增定时巡更任务
+        def setimetask():
+            uip = input_ipadr.get(1.0, tk.END + "-1c")
+            headers = {'Content-Type': 'application/json', 'token': token, 'guestCode': guestCode}
+            patrol_url ='http://' + uip +'/smartSecurityAPI/patrol/path/list'
+            patrol_res = requests.get(url=patrol_url,headers=headers,params=None).json()
+            get_pathId = ((patrol_res.get('result'))[0]).get('pathId')
+            task_url = 'http://'+uip+'/smartSecurityAPI/patrol/task/save'
+            task_data=json.dumps(
+                {
+                    "pathId": get_pathId,
+                    "taskName": "定时",
+                    "departId": user_departId,
+                    "taskType": "1",
+                    "taskTimes": 1,
+                    "taskTime": 5,
+                    "taskRange": "[{\"arr\":[\"00:00-23:59\"]},{\"arr\":[\"00:00-23:59\"]},{\"arr\":[\"00:00-23:59\"]},{\"arr\":[\"00:00-23:59\"]},{\"arr\":[\"00:00-23:59\"]},{\"arr\":[\"00:00-23:59\"]},{\"arr\":[\"00:00-23:59\"]}]"
+                }
+            )
+            task_res=requests.post(url=task_url,headers=headers,data=task_data).json()
+            if task_res.get('msg') == 'OK':
+                btn_setimetask.configure(bg='green')
+                out_Magtext.delete('1.0','end')
+                out_Magtext.insert('1.0',task_res)
+            else:
+                btn_setimetask.configure(bg='red')
+                msg='错误，请检查'
+                out_Magtext.delete('1.0','end')
+                out_Magtext.insert('1.0',msg)
+
+        # 按钮-新增定时巡更任务
+        btn_setimetask=tk.Button(root,text='新增定时巡更',height=1,width=10,command=lambda :setimetask())
+        btn_setimetask.place(x=370,y=470)
+
+        # 功能-执行定时巡更任务
+        def dotimetask():
+            uip = input_ipadr.get(1.0, tk.END + "-1c")
+            TaskDetails_url='http://'+uip+'/smartSecurityAPI/patrol/task/getTodayPatrolTaskDetails?taskType=1'
+            headers = {'Content-Type': 'application/json', 'token': token, 'guestCode': guestCode}
+            TaskDetails_res=requests.get(url=TaskDetails_url,headers=headers,params=None).json()
+            taskID =((TaskDetails_res.get('result'))[0]).get('taskId')
+            url = 'http://'+uip+'/smartSecurityAPI/patrol/rec/save'
+            this_startime=datetime.strftime(datetime.now(),'%Y-%m-%d %H:%M:%S')
+            this_endtime = datetime.strftime(datetime.now(),'%Y-%m-%d %H:%M:%S')
+            data = json.dumps(
+                {
+                    "recResult": 1,
+                    "recRemark": "",
+                    "taskId": taskID,
+                    "taskStartTime":this_startime,
+                    "taskEndTime": this_endtime
+                }
+            )
+            res = requests.post(url=url,headers=headers,data=data).json()
+            if res.get('msg') == 'OK':
+                btn_dotimetask.configure(bg='green')
+                out_Magtext.delete('1.0','end')
+                out_Magtext.insert('1.0',res)
+            else:
+                msg='错误，请检查'
+                btn_dotimetask.configure(bg='red')
+                out_Magtext.delete('1.0','end')
+                out_Magtext.insert('1.0',msg)
+
+
+
+
+        # 按钮-执行定时巡更任务
+        btn_dotimetask=tk.Button(root,text='执行定时巡更',height=1,width=10,command=lambda :dotimetask())
+        btn_dotimetask.place(x=370,y=500)
 
         # 功能-巡更日志
         def plclog():
